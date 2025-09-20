@@ -358,7 +358,7 @@ function addCounters() {
 
     const counter = document.createElement('span');
     counter.className = 'search-counter';
-    counter.textContent = ` ${globalCounter}`;
+    counter.textContent = `#${globalCounter}`;
     
     // Simple big number counter design
     counter.style.position = 'absolute';
@@ -493,8 +493,8 @@ function addCounters() {
       
       const span = document.createElement('span');
       span.className = 'search-counter';
-      span.textContent = ` ${globalCounter}`;
-      span.style.cssText = 'display:inline-block !important;margin-left:8px !important;background:none !important;color:#1a73e8 !important;border:none !important;padding:0 !important;font-size:20px !important;line-height:1 !important;pointer-events:none !important;font-weight:900 !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;text-shadow:1px 1px 2px rgba(0,0,0,0.3) !important;z-index:999999 !important;text-align:center !important;animation:counterPulse 0.6s ease-out !important;';
+      span.textContent = `#${globalCounter}`;
+      span.style.cssText = 'display:inline-block !important;margin-left:8px !important;background:none !important;color:#ffd700 !important;border:none !important;padding:0 !important;font-size:20px !important;line-height:1 !important;pointer-events:none !important;font-weight:900 !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;text-shadow:1px 1px 2px rgba(0,0,0,0.5) !important;z-index:999999 !important;text-align:center !important;animation:counterPulse 0.6s ease-out !important;';
       h3.appendChild(span);
       globalCounter++;
       added++;
