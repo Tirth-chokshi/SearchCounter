@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Icon Creator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .container { background: white; padding: 30px; border-radius: 10px; max-width: 800px; margin: 0 auto; text-align: center; }
+        canvas { border: 2px solid #ddd; margin: 10px; border-radius: 8px; }
+        button { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin: 10px; }
+        .base64-output { background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 12px; word-break: break-all; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Direct Icon Creator</h1>
+        
+        <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+            <div>
+                <canvas id="icon16" width="16" height="16"></canvas>
+                <p>16x16</p>
+            </div>
+            <div>
+                <canvas id="icon32" width="32" height="32"></canvas>
+                <p>32x32</p>
+            </div>
+            <div>
+                <canvas id="icon48" width="48" height="48"></canvas>
+                <p>48x48</p>
+            </div>
+            <div>
+                <canvas id="icon128" width="128" height="128"></canvas>
+                <p>128x128</p>
+            </div>
+        </div>
+        
+        <button onclick="createAndDownloadIcons()">🚀 Create & Download Icons</button>
+        <button onclick="showBase64()">📋 Show Base64 Data</button>
+        
+        <div id="base64Output" class="base64-output" style="display: none;"></div>
+        
+        <div style="background: #e8f4f8; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left;">
+            <h3>Quick Steps:</h3>
+            <ol>
+                <li>Click "Create & Download Icons" above</li>
+                <li>4 PNG files will download automatically</li>
+                <li>Move them to your extension folder</li>
+                <li>Add icon config to manifest.json (I'll do this for you)</li>
+                <li>Reload extension in Chrome</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#ff6b6b');
+            gradient.addColorStop(1, '#ee5a24');
+            
+            // Draw rounded background
+            const radius = Math.max(2, size * 0.15);
+            ctx.beginPath();
+            ctx.moveTo(radius, 0);
+            ctx.lineTo(size - radius, 0);
+            ctx.quadraticCurveTo(size, 0, size, radius);
+            ctx.lineTo(size, size - radius);
+            ctx.quadraticCurveTo(size, size, size - radius, size);
+            ctx.lineTo(radius, size);
+            ctx.quadraticCurveTo(0, size, 0, size - radius);
+            ctx.lineTo(0, radius);
+            ctx.quadraticCurveTo(0, 0, radius, 0);
+            ctx.closePath();
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Draw number badge
+            const badgeSize = Math.max(4, size * 0.3);
+            const badgeX = size * 0.7;
+            const badgeY = size * 0.3;
+            
+            // White circle
+            ctx.beginPath();
+            ctx.arc(badgeX, badgeY, badgeSize * 0.6, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            
+            // Number "1"
+            if (size >= 16) {
+                ctx.fillStyle = '#ee5a24';
+                ctx.font = `bold ${Math.max(8, badgeSize)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('1', badgeX, badgeY);
+            }
+            
+            // Draw search lines
+            if (size >= 32) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = Math.max(1, size * 0.03);
+                
+                const lineY1 = size * 0.5;
+                const lineY2 = size * 0.65;
+                const lineY3 = size * 0.8;
+                
+                ctx.beginPath();
+                ctx.moveTo(size * 0.15, lineY1);
+                ctx.lineTo(size * 0.5, lineY1);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(size * 0.15, lineY2);
+                ctx.lineTo(size * 0.45, lineY2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(size * 0.15, lineY3);
+                ctx.lineTo(size * 0.4, lineY3);
+                ctx.stroke();
+            }
+        }
+        
+        function createAndDownloadIcons() {
+            const sizes = [16, 32, 48, 128];
+            
+            sizes.forEach((size, index) => {
+                const canvas = document.getElementById(`icon${size}`);
+                drawIcon(canvas, size);
+                
+                // Download with delay
+                setTimeout(() => {
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `icon${size}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    });
+                }, index * 500);
+            });
+            
+            alert('Icons are downloading! Check your Downloads folder and move them to your extension folder.');
+        }
+        
+        function showBase64() {
+            const canvas = document.getElementById('icon128');
+            drawIcon(canvas, 128);
+            const base64 = canvas.toDataURL();
+            document.getElementById('base64Output').style.display = 'block';
+            document.getElementById('base64Output').textContent = base64;
+        }
+        
+        // Draw icons on load
+        window.onload = function() {
+            [16, 32, 48, 128].forEach(size => {
+                const canvas = document.getElementById(`icon${size}`);
+                drawIcon(canvas, size);
+            });
+        };
+    </script>
+</body>
+</html>

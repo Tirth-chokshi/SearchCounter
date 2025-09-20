@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "Search Counter",
+  "version": "1.0",
+  "description": "Add numbered counters to Google search results in mobile view",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "webRequest",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "*://*.google.com/*",
+    "*://*.google.co.uk/*",
+    "*://*.google.ca/*",
+    "*://*.google.com.au/*",
+    "*://*.google.de/*",
+    "*://*.google.fr/*",
+    "*://*.google.co.in/*",
+    "*://*.google.co.jp/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.google.com/search*",
+        "*://*.google.co.uk/search*",
+        "*://*.google.ca/search*",
+        "*://*.google.com.au/search*",
+        "*://*.google.de/search*",
+        "*://*.google.fr/search*",
+        "*://*.google.co.in/search*",
+        "*://*.google.co.jp/search*"
+      ],
+      "run_at": "document_idle",
+      "js": ["content.js"],
+      "css": ["style.css"]
+    }
+  ],
+  "action": {
+    "default_title": "Toggle Mobile View"
+  }
+}

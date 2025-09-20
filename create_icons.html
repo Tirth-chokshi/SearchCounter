@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Icon Generator</title>
+  <style>
+    body { font-family: sans-serif; }
+    .container { max-width: 500px; margin: 2em auto; }
+    #canvas-container { margin-top: 1em; }
+    canvas { border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Extension Icon Generator</h1>
+    <p>This page will generate the required icons for the extension. Click the buttons below to download the icons.</p>
+    <div id="canvas-container"></div>
+    <script>
+      function generateIcon(size) {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#4285F4'; // Google Blue
+        ctx.fillRect(0, 0, size, size);
+
+        // Text
+        ctx.fillStyle = 'white';
+        ctx.font = `${size * 0.6}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('M#', size / 2, size / 2);
+
+        const link = document.createElement('a');
+        link.download = `icon${size}.png`;
+        link.href = canvas.toDataURL();
+        link.innerHTML = `Download icon${size}.png`;
+        document.getElementById('canvas-container').appendChild(link);
+        document.getElementById('canvas-container').appendChild(document.createElement('br'));
+      }
+
+      [16, 48, 128].forEach(generateIcon);
+    </script>
+  </div>
+</body>
+</html>

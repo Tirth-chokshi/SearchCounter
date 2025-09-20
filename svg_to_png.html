@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SVG to PNG Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .preview {
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .icon-preview {
+            margin: 10px;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 5px;
+        }
+        button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .instructions {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Search Counter Icon Generator</h1>
+        
+        <div class="preview">
+            <div class="icon-preview">
+                <canvas id="canvas16" width="16" height="16"></canvas>
+                <p>16x16</p>
+            </div>
+            <div class="icon-preview">
+                <canvas id="canvas32" width="32" height="32"></canvas>
+                <p>32x32</p>
+            </div>
+            <div class="icon-preview">
+                <canvas id="canvas48" width="48" height="48"></canvas>
+                <p>48x48</p>
+            </div>
+            <div class="icon-preview">
+                <canvas id="canvas128" width="128" height="128"></canvas>
+                <p>128x128</p>
+            </div>
+        </div>
+        
+        <button onclick="downloadAllIcons()">📥 Download All PNG Icons</button>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ol>
+                <li>Click "Download All PNG Icons" above</li>
+                <li>Save all 4 files to your extension folder</li>
+                <li>Add this to your manifest.json:
+                    <pre>"icons": {
+  "16": "icon16.png",
+  "32": "icon32.png", 
+  "48": "icon48.png",
+  "128": "icon128.png"
+}</pre>
+                </li>
+                <li>Reload your extension in Chrome</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const svgString = `<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ee5a24;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background rounded rectangle -->
+  <rect x="8" y="8" width="112" height="112" rx="20" ry="20" fill="url(#grad)" />
+  
+  <!-- Search result lines -->
+  <rect x="20" y="30" width="60" height="4" rx="2" fill="rgba(255,255,255,0.8)" />
+  <rect x="20" y="45" width="50" height="4" rx="2" fill="rgba(255,255,255,0.8)" />
+  <rect x="20" y="60" width="55" height="4" rx="2" fill="rgba(255,255,255,0.8)" />
+  
+  <!-- Number badges -->
+  <circle cx="90" cy="32" r="12" fill="white" />
+  <text x="90" y="38" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ee5a24">1</text>
+  
+  <circle cx="90" cy="47" r="10" fill="rgba(255,255,255,0.9)" />
+  <text x="90" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ee5a24">2</text>
+  
+  <circle cx="90" cy="62" r="10" fill="rgba(255,255,255,0.9)" />
+  <text x="90" y="67" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ee5a24">3</text>
+  
+  <!-- Search magnifying glass -->
+  <circle cx="45" cy="90" r="15" fill="none" stroke="white" stroke-width="4" />
+  <line x1="56" y1="101" x2="70" y2="115" stroke="white" stroke-width="4" stroke-linecap="round" />
+</svg>`;
+
+        function createIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            const ctx = canvas.getContext('2d');
+            
+            const img = new Image();
+            const svgBlob = new Blob([svgString], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0, size, size);
+                URL.revokeObjectURL(url);
+            };
+            
+            img.src = url;
+        }
+        
+        function downloadIcon(size) {
+            const canvas = document.getElementById(`canvas${size}`);
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon${size}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        function downloadAllIcons() {
+            const sizes = [16, 32, 48, 128];
+            sizes.forEach((size, index) => {
+                setTimeout(() => downloadIcon(size), index * 300);
+            });
+        }
+        
+        // Create all icons when page loads
+        window.onload = function() {
+            setTimeout(() => {
+                [16, 32, 48, 128].forEach(size => createIcon(size));
+            }, 100);
+        };
+    </script>
+</body>
+</html>
