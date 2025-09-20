@@ -1,41 +1,96 @@
 .search-counter {
   color: #ffd700 !important;
-  font-size: 28px !important;
-  font-weight: normal !important;
-  margin-left: 12px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
   display: inline-block !important;
   white-space: nowrap !important;
-  background: none !important;
-  padding: 4px 8px !important;
-  border-radius: 0 !important;
-  border: none !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  border: 1px solid #ffd700 !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
   line-height: 1.2 !important;
-  vertical-align: middle !important;
   z-index: 2147483647 !important;
-  position: relative !important;
-  pointer-events: none !important; /* Never intercept clicks */
+  position: absolute !important;
+  left: 10px !important;
+  top: 8px !important;
+  pointer-events: none !important;
   user-select: none !important;
-  box-shadow: none !important;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
   letter-spacing: 0 !important;
   text-align: center !important;
-  min-width: 40px !important;
-  min-height: 32px !important;
+  min-width: 32px !important;
+  min-height: 24px !important;
   transition: all 0.2s ease !important;
+}
+
+/* Position search result containers without shifting content */
+.g,
+.MjjYud,
+.tF2Cxc {
+  position: relative !important;
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+}
+
+/* Target the specific elements that contain favicon, title, and URL */
+.g .yuRUbf .NJjxre,
+.MjjYud .yuRUbf .NJjxre,
+.tF2Cxc .yuRUbf .NJjxre,
+.g .yuRUbf .byrV5b,
+.MjjYud .yuRUbf .byrV5b,
+.tF2Cxc .yuRUbf .byrV5b,
+.g .VwiC3b .byrV5b,
+.MjjYud .VwiC3b .byrV5b,
+.tF2Cxc .VwiC3b .byrV5b,
+.g .kb0PBd,
+.MjjYud .kb0PBd,
+.tF2Cxc .kb0PBd {
+  padding-left: 50px !important;
+  margin-left: 0 !important;
+}
+
+/* Ensure the h3 elements that contain the numbers have relative positioning */
+.g h3,
+.MjjYud h3,
+.tF2Cxc h3 {
+  position: relative !important;
 }
 
 
 
-/* Ensure counters are visible in mobile view */
+/* Mobile view styling */
 @media (max-width: 768px) {
   .search-counter {
-    font-size: 32px !important;
-    font-weight: normal !important;
-    padding: 6px 10px !important;
-    margin-left: 12px !important;
-    min-width: 45px !important;
-    min-height: 36px !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    padding: 3px 6px !important;
+    left: 8px !important;
+    min-width: 36px !important;
+    min-height: 28px !important;
+  }
+  
+  .g,
+  .MjjYud,
+  .tF2Cxc {
+    padding-left: 0 !important;
+  }
+  
+  .g .yuRUbf .NJjxre,
+  .MjjYud .yuRUbf .NJjxre,
+  .tF2Cxc .yuRUbf .NJjxre,
+  .g .yuRUbf .byrV5b,
+  .MjjYud .yuRUbf .byrV5b,
+  .tF2Cxc .yuRUbf .byrV5b,
+  .g .VwiC3b .byrV5b,
+  .MjjYud .VwiC3b .byrV5b,
+  .tF2Cxc .VwiC3b .byrV5b,
+  .g .kb0PBd,
+  .MjjYud .kb0PBd,
+  .tF2Cxc .kb0PBd {
+    padding-left: 45px !important;
+    margin-left: 0 !important;
   }
 }
 
@@ -43,31 +98,33 @@
 @media (prefers-color-scheme: dark) {
   .search-counter {
     color: #ffd700 !important;
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.7) !important;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid #ffd700 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
   }
 }
 
 /* Animation keyframes */
 @keyframes counterPulse {
-  0% { 
-    transform: scale(0.8); 
-    opacity: 0; 
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
   }
-  50% { 
-    transform: scale(1.1); 
-    opacity: 0.8; 
+
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
   }
-  100% { 
-    transform: scale(1); 
-    opacity: 1; 
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
 /* Hover effect */
 .search-counter:hover {
   transform: scale(1.05) !important;
-  box-shadow: 0 6px 16px rgba(238, 90, 36, 0.6), 0 3px 6px rgba(0,0,0,0.2) !important;
+  box-shadow: 0 6px 16px rgba(238, 90, 36, 0.6), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
 }

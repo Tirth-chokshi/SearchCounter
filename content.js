@@ -491,11 +491,15 @@ function addCounters() {
           parentLink.href.startsWith('javascript:') ||
           parentLink.href.startsWith('#')) return;
       
+      // Find the search result container
+      const searchContainer = h3.closest('.g, .MjjYud, .tF2Cxc');
+      if (!searchContainer) return;
+      
       const span = document.createElement('span');
       span.className = 'search-counter';
       span.textContent = `#${globalCounter}`;
-      span.style.cssText = 'display:inline-block !important;margin-left:12px !important;background:none !important;color:#ffd700 !important;border:none !important;padding:4px 8px !important;font-size:28px !important;line-height:1.2 !important;pointer-events:none !important;font-weight:normal !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;text-shadow:1px 1px 2px rgba(0,0,0,0.5) !important;z-index:999999 !important;text-align:center !important;min-width:40px !important;min-height:32px !important;animation:counterPulse 0.6s ease-out !important;';
-      h3.appendChild(span);
+      // Remove inline styles - let CSS handle positioning
+      searchContainer.appendChild(span);
       globalCounter++;
       added++;
     });
