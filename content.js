@@ -360,43 +360,35 @@ function addCounters() {
     counter.className = 'search-counter';
     counter.textContent = ` ${globalCounter}`;
     
-    // Modern, stylish counter design with improved positioning
+    // Simple big number counter design
     counter.style.position = 'absolute';
     
     if (isMobileLayout) {
-      // Mobile positioning - top left corner with better spacing
+      // Mobile positioning - top left corner
       counter.style.left = '12px';
       counter.style.top = '8px';
-      counter.style.padding = '6px 12px';
-      counter.style.fontSize = '13px';
-      counter.style.borderRadius = '16px';
+      counter.style.fontSize = '24px';
     } else {
       // Desktop positioning - top right corner
       counter.style.right = '8px';
       counter.style.top = '-6px';
-      counter.style.padding = '4px 8px';
-      counter.style.fontSize = '11px';
-      counter.style.borderRadius = '12px';
+      counter.style.fontSize = '20px';
     }
     
-    counter.style.background = 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)';
-    counter.style.color = '#ffffff';
-    counter.style.border = '1px solid rgba(255,255,255,0.2)';
-    counter.style.lineHeight = '1.2';
+    counter.style.background = 'none';
+    counter.style.color = '#1a73e8';
+    counter.style.border = 'none';
+    counter.style.padding = '0';
+    counter.style.lineHeight = '1';
     counter.style.pointerEvents = 'none';
     counter.style.zIndex = '2147483647';
-    counter.style.fontWeight = '600';
+    counter.style.fontWeight = '900';
     counter.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    counter.style.boxShadow = '0 2px 8px rgba(66, 133, 244, 0.3), 0 1px 3px rgba(0,0,0,0.2)';
-    counter.style.textShadow = '0 1px 2px rgba(0,0,0,0.3)';
+    counter.style.textShadow = '1px 1px 2px rgba(0,0,0,0.3)';
     counter.style.transform = 'scale(1)';
     counter.style.transition = 'all 0.2s ease';
     counter.style.animation = 'counterPulse 0.6s ease-out';
-    counter.style.letterSpacing = '0.3px';
     counter.style.textAlign = 'center';
-    counter.style.minWidth = isMobileLayout ? '28px' : '22px';
-    counter.style.backdropFilter = 'blur(4px)';
-    counter.style.webkitBackdropFilter = 'blur(4px)';
     
     // Add CSS animation keyframes to document if not already added
     if (!document.querySelector('#counter-animations')) {
@@ -502,7 +494,7 @@ function addCounters() {
       const span = document.createElement('span');
       span.className = 'search-counter';
       span.textContent = ` ${globalCounter}`;
-      span.style.cssText = 'display:inline-block !important;margin-left:8px !important;background:linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%) !important;color:#ffffff !important;border:2px solid rgba(255,255,255,0.3) !important;border-radius:20px !important;padding:4px 10px !important;font-size:12px !important;line-height:1.3 !important;pointer-events:none !important;font-weight:700 !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;box-shadow:0 4px 12px rgba(238, 90, 36, 0.4), 0 2px 4px rgba(0,0,0,0.1) !important;text-shadow:0 1px 2px rgba(0,0,0,0.4) !important;z-index:999999 !important;letter-spacing:0.5px !important;text-align:center !important;min-width:24px !important;animation:counterPulse 0.6s ease-out !important;';
+      span.style.cssText = 'display:inline-block !important;margin-left:8px !important;background:none !important;color:#1a73e8 !important;border:none !important;padding:0 !important;font-size:20px !important;line-height:1 !important;pointer-events:none !important;font-weight:900 !important;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif !important;text-shadow:1px 1px 2px rgba(0,0,0,0.3) !important;z-index:999999 !important;text-align:center !important;animation:counterPulse 0.6s ease-out !important;';
       h3.appendChild(span);
       globalCounter++;
       added++;
