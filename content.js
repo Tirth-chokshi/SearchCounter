@@ -360,29 +360,43 @@ function addCounters() {
     counter.className = 'search-counter';
     counter.textContent = ` ${globalCounter}`;
     
-    // Modern, stylish counter design with adaptive positioning
+    // Modern, stylish counter design with improved positioning
     counter.style.position = 'absolute';
-    counter.style.right = isMobileLayout ? '8px' : '0';
-    counter.style.top = isMobileLayout ? '4px' : '-8px';
-    counter.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
+    
+    if (isMobileLayout) {
+      // Mobile positioning - top left corner with better spacing
+      counter.style.left = '12px';
+      counter.style.top = '8px';
+      counter.style.padding = '6px 12px';
+      counter.style.fontSize = '13px';
+      counter.style.borderRadius = '16px';
+    } else {
+      // Desktop positioning - top right corner
+      counter.style.right = '8px';
+      counter.style.top = '-6px';
+      counter.style.padding = '4px 8px';
+      counter.style.fontSize = '11px';
+      counter.style.borderRadius = '12px';
+    }
+    
+    counter.style.background = 'linear-gradient(135deg, #4285f4 0%, #1a73e8 100%)';
     counter.style.color = '#ffffff';
-    counter.style.border = '2px solid rgba(255,255,255,0.3)';
-    counter.style.padding = isMobileLayout ? '4px 10px' : '3px 8px';
-    counter.style.borderRadius = '20px';
-    counter.style.fontSize = isMobileLayout ? '12px' : '10px';
-    counter.style.lineHeight = '1.3';
+    counter.style.border = '1px solid rgba(255,255,255,0.2)';
+    counter.style.lineHeight = '1.2';
     counter.style.pointerEvents = 'none';
     counter.style.zIndex = '2147483647';
-    counter.style.fontWeight = '700';
+    counter.style.fontWeight = '600';
     counter.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    counter.style.boxShadow = '0 4px 12px rgba(238, 90, 36, 0.4), 0 2px 4px rgba(0,0,0,0.1)';
-    counter.style.textShadow = '0 1px 2px rgba(0,0,0,0.4)';
+    counter.style.boxShadow = '0 2px 8px rgba(66, 133, 244, 0.3), 0 1px 3px rgba(0,0,0,0.2)';
+    counter.style.textShadow = '0 1px 2px rgba(0,0,0,0.3)';
     counter.style.transform = 'scale(1)';
     counter.style.transition = 'all 0.2s ease';
     counter.style.animation = 'counterPulse 0.6s ease-out';
-    counter.style.letterSpacing = '0.5px';
+    counter.style.letterSpacing = '0.3px';
     counter.style.textAlign = 'center';
-    counter.style.minWidth = '24px';
+    counter.style.minWidth = isMobileLayout ? '28px' : '22px';
+    counter.style.backdropFilter = 'blur(4px)';
+    counter.style.webkitBackdropFilter = 'blur(4px)';
     
     // Add CSS animation keyframes to document if not already added
     if (!document.querySelector('#counter-animations')) {
