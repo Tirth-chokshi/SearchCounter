@@ -2,13 +2,11 @@
   "manifest_version": 3,
   "name": "Search Counter",
   "version": "1.0",
-  "description": "Add numbered counters to Google search results in mobile view",
+  "description": "Add numbered counters to Google search results",
   "permissions": [
     "activeTab",
     "scripting",
-    "storage",
-    "webRequest",
-    "declarativeNetRequest"
+    "storage"
   ],
   "host_permissions": [
     "*://*.google.com/*",
@@ -41,6 +39,6 @@
     }
   ],
   "action": {
-    "default_title": "Toggle Mobile View"
+    "default_title": "Add Search Counters"
   }
 }

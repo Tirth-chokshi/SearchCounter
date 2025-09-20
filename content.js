@@ -4,6 +4,7 @@ let processedResults = new Set();
 let observerRef = null;
 let debounceTimer = null;
 let baseIndex = 0;
+let isProcessing = false;
 
 // Detect if current page is a Google web search results page
 function isGoogleSearchPage() {
@@ -21,32 +22,6 @@ function isGoogleSearchPage() {
   }
 }
 
-// Check if we're in mobile view (either natural mobile or extension-triggered)
-function isMobileView() {
-  const userAgent = navigator.userAgent;
-  const naturalMobile = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-  const extensionMobile = userAgent.includes('iPhone'); // Extension sets iPhone user agent
-  
-  // Also check viewport width as backup detection
-  const narrowViewport = window.innerWidth <= 768;
-  
-  // Check if page layout looks mobile (Google's mobile-specific elements)
-  const hasMobileLayout = !!(
-    document.querySelector('.mnr-c') || 
-    document.querySelector('.xpd') ||
-    document.querySelector('[data-ved*="mobile"]') ||
-    document.body.classList.contains('mobile')
-  );
-  
-  const result = naturalMobile || extensionMobile || (narrowViewport && hasMobileLayout);
-  
-  // TEMPORARY: Force mobile view for testing - remove this later
-  if (!result) {
-    return true;
-  }
-  
-  return result;
-}
 
 function clearExistingCounters() {  
   const existingCounters = document.querySelectorAll('.search-counter');
@@ -59,6 +34,19 @@ function preserveExistingCounters() {
   // Don't clear existing counters, just update the global counter to continue from where we left off
   const existingCounters = document.querySelectorAll('.search-counter');
   let maxCounter = baseIndex;
+  
+  // Rebuild processedResults Set from existing counters
+  processedResults.clear();
+  const existingAnchors = document.querySelectorAll('.search-counter');
+  existingAnchors.forEach(counter => {
+    const container = counter.closest('.yuRUbf, .g, .MjjYud') || counter.parentElement;
+    if (container) {
+      const anchor = container.querySelector('a[href]');
+      if (anchor && anchor.href) {
+        processedResults.add(anchor.href);
+      }
+    }
+  });
   
   existingCounters.forEach(counter => {
     const counterText = counter.textContent.trim();
@@ -76,18 +64,46 @@ function getOrganicAnchors() {
   const scope = document.querySelector('#search') || document;
   const rso = scope.querySelector('#rso') || scope;
   
-  // Target only main organic results - be more specific
-  let anchors = Array.from(
-    rso.querySelectorAll('.tF2Cxc .yuRUbf > a, .g:not(.g-blk) .yuRUbf > a, .MjjYud .yuRUbf > a')
-  );
+  // Check if we're in mobile view
+  const isMobileView = window.innerWidth <= 768 || 
+                      document.body.classList.contains('mobile') ||
+                      document.querySelector('.mnr-c') ||
+                      document.querySelector('.xpd') ||
+                      navigator.userAgent.includes('Mobile') ||
+                      document.querySelector('[data-ved*="mobile"]');
+  
+  console.log(`[Counter] Mobile view detected: ${isMobileView}`);
+  
+  let anchors = [];
+  
+  if (isMobileView) {
+    // Mobile-specific selectors first
+    anchors = Array.from(
+      scope.querySelectorAll(
+        '.mnr-c a[href]:not([href*="google.com"]), ' +
+        '.xpd a[href]:not([href*="google.com"]), ' +
+        '.MjjYud a[href]:not([href*="google.com"]), ' +
+        '.g a[href]:not([href*="google.com"]), ' +
+        '#search .yuRUbf > a, ' +
+        '#rso .yuRUbf > a'
+      )
+    );
+    
+    console.log(`[Counter] Mobile anchors found: ${anchors.length}`);
+  } else {
+    // Desktop selectors
+    anchors = Array.from(
+      rso.querySelectorAll('.tF2Cxc .yuRUbf > a, .g:not(.g-blk) .yuRUbf > a, .MjjYud .yuRUbf > a')
+    );
+  }
   
   // Fallback for different layouts
   if (anchors.length === 0) {
     anchors = Array.from(rso.querySelectorAll('.yuRUbf > a'));
   }
   
-  // Mobile selectors - mobile view uses different structure
-  if (anchors.length === 0) {
+  // Additional mobile fallbacks
+  if (anchors.length === 0 && isMobileView) {
     anchors = Array.from(scope.querySelectorAll('#search .MjjYud .yuRUbf > a, #search .g:not(.g-blk) .yuRUbf > a, #search .tF2Cxc .yuRUbf > a'));
   }
   
@@ -233,42 +249,18 @@ function getOrganicAnchors() {
 
 function addCounters() {
   if (!isGoogleSearchPage()) return;
-  
-  // Only show counters in mobile view (natural mobile or extension-triggered)
-  const mobileViewDetected = isMobileView();
-  if (!mobileViewDetected) {
+
+  // Prevent simultaneous executions
+  if (isProcessing) {
+    console.log('[Counter] Already processing, skipping...');
     return;
   }
+  isProcessing = true;
 
   // Pause observer to avoid self-triggered loops
   if (observerRef) observerRef.disconnect();
 
-  // Recompute base index from URL each time (supports pagination and infinite scroll URLs)
-  try {
-    const u = new URL(window.location.href);
-    let startParam = parseInt(u.searchParams.get('start') || '0', 10);
-    
-    // Also check for other pagination indicators
-    const pageParam = parseInt(u.searchParams.get('page') || '1', 10);
-    const offsetParam = parseInt(u.searchParams.get('offset') || '0', 10);
-    
-    // Calculate base index from various pagination methods
-    if (startParam > 0) {
-      baseIndex = startParam;
-    } else if (pageParam > 1) {
-      baseIndex = (pageParam - 1) * 10; // Assume 10 results per page
-    } else if (offsetParam > 0) {
-      baseIndex = offsetParam;
-    } else {
-      baseIndex = 0;
-    }
-    
-  } catch (_) {
-    baseIndex = 0;
-  }
-  globalCounter = baseIndex + 1;
-
-  // Check if this is a "load more" scenario vs a fresh page
+  // Check if this is a "load more" scenario vs a fresh page FIRST
   const existingCounters = document.querySelectorAll('.search-counter');
   const isLoadMore = existingCounters.length > 0;
   
@@ -276,11 +268,50 @@ function addCounters() {
     // Preserve existing counters and continue numbering
     preserveExistingCounters();
   } else {
-    // Fresh page - clear everything and start over
+    // Fresh page - recompute base index from URL and reset
+    try {
+      const u = new URL(window.location.href);
+      let startParam = parseInt(u.searchParams.get('start') || '0', 10);
+      
+      // Also check for other pagination indicators
+      const pageParam = parseInt(u.searchParams.get('page') || '1', 10);
+      const offsetParam = parseInt(u.searchParams.get('offset') || '0', 10);
+      
+      // Calculate base index from various pagination methods
+      if (startParam > 0) {
+        baseIndex = startParam;
+      } else if (pageParam > 1) {
+        baseIndex = (pageParam - 1) * 10; // Assume 10 results per page
+      } else if (offsetParam > 0) {
+        baseIndex = offsetParam;
+      } else {
+        baseIndex = 0;
+      }
+      
+    } catch (_) {
+      baseIndex = 0;
+    }
+    globalCounter = baseIndex + 1;
     clearExistingCounters();
   }
 
   const anchors = getOrganicAnchors();
+
+  // Early exit if no new results to process
+  const unprocessedAnchors = anchors.filter(a => !processedResults.has(a.href));
+  if (unprocessedAnchors.length === 0) {
+    console.log('[Counter] No new results to process');
+    isProcessing = false;
+    if (observerRef) {
+      observerRef.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: false,
+        characterData: false,
+      });
+    }
+    return;
+  }
 
   let added = 0;
   anchors.forEach((a) => {
@@ -296,10 +327,27 @@ function addCounters() {
     // Avoid duplicates - check if container already has a counter
     if (container.querySelector('.search-counter')) return;
 
+    // Detect mobile layout for adaptive positioning and container selection
+    const isMobileLayout = window.innerWidth <= 768 || 
+                          document.body.classList.contains('mobile') ||
+                          document.querySelector('.mnr-c') ||
+                          document.querySelector('.xpd') ||
+                          navigator.userAgent.includes('Mobile') ||
+                          document.querySelector('[data-ved*="mobile"]');
+    
+    console.log(`[Counter] Processing anchor: ${a.href}, Mobile layout: ${isMobileLayout}`);
+    
     // For mobile view, try to find a better container
-    if (window.innerWidth <= 768 || document.body.classList.contains('mobile')) {
-      const mobileContainer = a.closest('.xpd') || a.closest('.mnr-c') || container;
-      if (mobileContainer) container = mobileContainer;
+    if (isMobileLayout) {
+      const mobileContainer = a.closest('.xpd') || 
+                             a.closest('.mnr-c') || 
+                             a.closest('.MjjYud') || 
+                             a.closest('.g') || 
+                             container;
+      if (mobileContainer) {
+        container = mobileContainer;
+        console.log(`[Counter] Using mobile container: ${container.className}`);
+      }
     }
 
     // Ensure container can host absolutely-positioned child
@@ -312,19 +360,16 @@ function addCounters() {
     counter.className = 'search-counter';
     counter.textContent = ` ${globalCounter}`;
     
-    // Adaptive positioning for mobile vs desktop
-    const isMobile = window.innerWidth <= 768 || document.body.classList.contains('mobile');
-    
-    // Modern, stylish counter design
+    // Modern, stylish counter design with adaptive positioning
     counter.style.position = 'absolute';
-    counter.style.right = isMobile ? '8px' : '0';
-    counter.style.top = isMobile ? '4px' : '-8px';
+    counter.style.right = isMobileLayout ? '8px' : '0';
+    counter.style.top = isMobileLayout ? '4px' : '-8px';
     counter.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)';
     counter.style.color = '#ffffff';
     counter.style.border = '2px solid rgba(255,255,255,0.3)';
-    counter.style.padding = isMobile ? '4px 10px' : '3px 8px';
+    counter.style.padding = isMobileLayout ? '4px 10px' : '3px 8px';
     counter.style.borderRadius = '20px';
-    counter.style.fontSize = isMobile ? '12px' : '10px';
+    counter.style.fontSize = isMobileLayout ? '12px' : '10px';
     counter.style.lineHeight = '1.3';
     counter.style.pointerEvents = 'none';
     counter.style.zIndex = '2147483647';
@@ -452,6 +497,7 @@ function addCounters() {
   }
 
   // Resume observing
+  isProcessing = false;
   if (observerRef) {
     observerRef.observe(document.body, {
       childList: true,
@@ -538,11 +584,6 @@ function init() {
     return;
   }
   
-  // Check if we should show counters (only in mobile view)
-  if (!isMobileView()) {
-    console.log('[Counter] Desktop view - counters disabled. Click extension to enable mobile view.');
-    return;
-  }
   
   // Determine starting index from URL (start=10 -> begin at 11)
   const computeBaseIndex = () => {
@@ -565,83 +606,47 @@ function init() {
   // Set up search reset detection
   resetCountersOnNewSearch();
   
-  // Listen for mobile view toggle (when extension button is clicked)
+  // Listen for layout changes (mobile view toggle)
   let lastViewportWidth = window.innerWidth;
   let lastUserAgent = navigator.userAgent;
   
-  const checkViewportChange = () => {
+  const checkLayoutChange = () => {
     const currentWidth = window.innerWidth;
     const currentUA = navigator.userAgent;
     
-    // Check if user agent changed (extension mobile toggle)
-    if (currentUA !== lastUserAgent) {
-      console.log('[Counter] User agent change detected - mobile view toggled');
-      console.log(`[Counter] UA: ${lastUserAgent.includes('iPhone') ? 'Mobile' : 'Desktop'} -> ${currentUA.includes('iPhone') ? 'Mobile' : 'Desktop'}`);
-      
-      if (currentUA.includes('iPhone')) {
-        // Switched to mobile view - show counters
-        console.log('[Counter] Mobile view enabled, showing counters');
-        setTimeout(addCounters, 1000);
-      } else {
-        // Switched to desktop view - hide counters
-        console.log('[Counter] Desktop view enabled, hiding counters');
-        clearExistingCounters();
-      }
-      
-      lastUserAgent = currentUA;
-    }
-    
-    // Also check viewport changes for responsive behavior
-    if (Math.abs(currentWidth - lastViewportWidth) > 100) {
-      console.log(`[Counter] Viewport change: ${lastViewportWidth} -> ${currentWidth}`);
+    // Check if viewport changed significantly (mobile toggle)
+    if (Math.abs(currentWidth - lastViewportWidth) > 100 || currentUA !== lastUserAgent) {
+      console.log(`[Counter] Layout change detected: ${lastViewportWidth} -> ${currentWidth}`);
+      console.log(`[Counter] User agent change: ${lastUserAgent.includes('Mobile')} -> ${currentUA.includes('Mobile')}`);
       lastViewportWidth = currentWidth;
-      if (isMobileView()) {
-        setTimeout(addCounters, 500);
-      }
+      lastUserAgent = currentUA;
+      
+      // Clear existing counters and re-add after layout change
+      clearExistingCounters();
+      setTimeout(() => {
+        console.log('[Counter] Re-adding counters after layout change');
+        addCounters();
+      }, 1500);
     }
   };
   
-  // Check for viewport changes (mobile toggle)
-  window.addEventListener('resize', checkViewportChange);
+  // Check for layout changes
+  window.addEventListener('resize', checkLayoutChange);
   
-  // Periodic check for mobile view changes (every 2 seconds)
+  // Periodic check for layout changes (every 2 seconds)
   setInterval(() => {
-    checkViewportChange(); // Check for user agent changes
+    checkLayoutChange();
     
-    // Only add counters if we're in mobile view and don't have any
-    if (isMobileView()) {
-      const hasCounters = document.querySelectorAll('.search-counter').length > 0;
-      if (!hasCounters) {
-        console.log('[Counter] Periodic check: Mobile view but no counters found, re-adding');
-        addCounters();
-      }
+    // Also check if we lost counters and need to re-add them
+    const hasCounters = document.querySelectorAll('.search-counter').length > 0;
+    const hasResults = document.querySelectorAll('#search a[href], #rso a[href]').length > 0;
+    
+    if (!hasCounters && hasResults) {
+      console.log('[Counter] Periodic check: No counters found but results exist, re-adding');
+      addCounters();
     }
   }, 2000);
   
-  // Also listen for DOM changes that might indicate mobile view toggle
-  const mobileToggleObserver = new MutationObserver((mutations) => {
-    let shouldRecheck = false;
-    mutations.forEach((mutation) => {
-      if (mutation.type === 'attributes' && 
-          (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
-        shouldRecheck = true;
-      }
-      // Also check for childList changes that might indicate layout switch
-      if (mutation.type === 'childList' && mutation.target === document.body) {
-        shouldRecheck = true;
-      }
-    });
-    if (shouldRecheck) {
-      console.log('[Counter] DOM change detected, re-adding counters');
-      setTimeout(addCounters, 300);
-    }
-  });
-  
-  mobileToggleObserver.observe(document.body, {
-    attributes: true,
-    childList: true,
-    attributeFilter: ['class', 'style']
-  });
   
   // Set up mutation observer for dynamic content and pagination
   observerRef = new MutationObserver((mutations) => {
@@ -654,7 +659,9 @@ function init() {
           n.matches?.('#search, #rso, .MjjYud, .g, .tF2Cxc, .yuRUbf') ||
           n.querySelector?.('#search #rso, #search .MjjYud, #search .g, #search .tF2Cxc, #search .yuRUbf') ||
           n.matches?.('.AaVjTc') || // "See more" button container
-          n.querySelector?.('.AaVjTc') // "See more" results container
+          n.querySelector?.('.AaVjTc') || // "See more" results container
+          n.matches?.('.mnr-c, .xpd') || // Mobile containers
+          n.querySelector?.('.mnr-c, .xpd') // Mobile containers
         ) {
           shouldUpdate = true;
           break;
@@ -665,10 +672,32 @@ function init() {
     if (shouldUpdate) {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        console.log('[Counter] DOM mutation detected, re-adding counters');
-        addCounters();
-      }, 250);
+        if (!isProcessing) {
+          console.log('[Counter] DOM mutation detected, re-adding counters');
+          addCounters();
+        }
+      }, 500);
     }
+  });
+  
+  // Also observe body class changes (mobile view toggle)
+  const bodyObserver = new MutationObserver((mutations) => {
+    let layoutChanged = false;
+    mutations.forEach((mutation) => {
+      if (mutation.type === 'attributes' && 
+          (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+        layoutChanged = true;
+      }
+    });
+    if (layoutChanged) {
+      console.log('[Counter] Body class/style change detected, re-adding counters');
+      setTimeout(addCounters, 1000);
+    }
+  });
+  
+  bodyObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['class', 'style']
   });
   
   observerRef.observe(document.body, { 
@@ -678,6 +707,13 @@ function init() {
     characterData: false
   });
 }
+
+// Manual trigger function for background script
+window.manualAddCounters = function() {
+  console.log('[Counter] Manual trigger activated');
+  clearExistingCounters();
+  setTimeout(addCounters, 500);
+};
 
 // Run when DOM is ready
 if (document.readyState === 'loading') {
